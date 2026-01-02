@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitas Iglesia Mayor</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#5b4636" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f1ec;
+      color: #333;
+    }
+    header {
+      background: url('https://upload.wikimedia.org/wikipedia/commons/4/4c/Iglesia_Mayor_de_San_Juan_Bautista_%28Chiclana%29.jpg') no-repeat center/cover;
+      height: 40vh;
+      display: flex;
+      align-items: flex-end;
+    }
+    header h1 {
+      background: rgba(0,0,0,0.6);
+      color: white;
+      width: 100%;
+      padding: 15px;
+      margin: 0;
+      font-size: 1.4em;
+      text-align: center;
+    }
+    main {
+      padding: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 1em;
+    }
+    button {
+      background-color: #5b4636;
+      color: white;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #999;
+    }
+    .info {
+      margin-top: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .ok {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Iglesia Mayor de San Juan Bautista<br>Chiclana de la Frontera</h1>
+</header>
+
+<main>
+  <div class="info">
+    <p><strong>Día de visita:</strong> Miércoles</p>
+    <p><strong>Horario:</strong> 11:00 – 12:00</p>
+    <p><strong>Aforo máximo:</strong> 55 personas</p>
+  </div>
+
+  <label for="fecha">Selecciona miércoles disponible</label>
+  <input type="date" id="fecha" />
+
+  <label for="personas">Número de personas</label>
+  <input type="number" id="personas" min="1" max="55" value="1" />
+
+  <button id="reservar">Reservar visita</button>
+
+  <p id="mensaje"></p>
+</main>
+
+<script>
+  const MAX = 55;
+  const telefono = '34678081403';
+
+  function esMiercoles(fecha) {
+    return fecha.getDay() === 3;
+  }
+
+  document.getElementById('reservar').onclick = () => {
+    const fechaInput = document.getElementById('fecha').value;
+    const personas = parseInt(document.getElementById('personas').value);
+    const mensaje = document.getElementById('mensaje');
+
+    if (!fechaInput) {
+      mensaje.textContent = 'Selecciona una fecha.';
+      mensaje.className = 'error';
+      return;
+    }
+
+    const fecha = new Date(fechaInput);
+
+    if (!esMiercoles(fecha)) {
+      mensaje.textContent = 'Solo se permiten reservas los miércoles.';
+      mensaje.className = 'error';
+      return;
+    }
+
+    const clave = 'visitas_' + fechaInput;
+    const usadas = parseInt(localStorage.getItem(clave) || '0');
+
+    if (usadas + personas > MAX) {
+      mensaje.textContent = `No hay plazas suficientes. Quedan ${MAX - usadas}.`;
+      mensaje.className = 'error';
+      return;
+    }
+
+    localStorage.setItem(clave, usadas + personas);
+
+    const texto = `Reserva confirmada para la visita a la Iglesia Mayor de San Juan Bautista.%0AFecha: ${fechaInput}%0AHora: 11:00-12:00%0APersonas: ${personas}`;
+    const url = `https://wa.me/${telefono}?text=${texto}`;
+
+    mensaje.textContent = 'Reserva realizada. Se abrirá WhatsApp para confirmar.';
+    mensaje.className = 'ok';
+
+    setTimeout(() => {
+      window.open(url, '_blank');
+    }, 1000);
+  };
+</script>
+
+</body>
+</html>
